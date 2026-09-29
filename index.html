@@ -1,643 +1,853 @@
-<title>Carrier Risk Check</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+undefined<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carrier Risk Check — Mercedes Miley / The Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* layout: single-column utility tool — input bar up top, a manifest-style readout below, static verification checklist always visible beneath it */
 :root{
-  --bg:#faf9fc; --surface:#ffffff; --surface-2:#f2eef7; --border:#ddd3ea;
-  --ink:#1c1424; --ink-dim:#5b5266;
-  --brand:#5C2D91; --brand-2:#FF1493;
-  --ok:#0f7a4a; --ok-bg:#e6f6ee;
-  --warn:#9a6400; --warn-bg:#fdf1d6;
-  --crit:#b3123a; --crit-bg:#fce7ec;
-  --mono: 'IBM Plex Mono', ui-monospace, monospace;
-  --display: 'Big Shoulders Display', sans-serif;
-  --body: 'IBM Plex Sans', system-ui, sans-serif;
-  color-scheme: light;
+  --bg:#09070D;
+  --surface:#121019;
+  --surface-2:#191522;
+  --text:#F7F3FA;
+  --text-2:#AAA1B2;
+  --line:#312A39;
+  --pink:#FF2D95;
+  --violet:#8B5CF6;
+  --cyan:#6EE7E7;
+  --ok:#35D07F;
+  --warn:#FFB84D;
+  --crit:#FF4D6D;
+  --font-head:'Space Grotesk', system-ui, sans-serif;
+  --font-mono:'IBM Plex Mono', 'SF Mono', monospace;
+  --radius:10px;
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#120c17; --surface:#1c1423; --surface-2:#241a2d; --border:#3a2b47;
-    --ink:#f3eef8; --ink-dim:#b8abc4;
-    --ok:#3fd58f; --ok-bg:#0f2c20;
-    --warn:#f0b429; --warn-bg:#3a2c0c;
-    --crit:#ff5c81; --crit-bg:#3a1220;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#120c17; --surface:#1c1423; --surface-2:#241a2d; --border:#3a2b47;
-  --ink:#f3eef8; --ink-dim:#b8abc4;
-  --ok:#3fd58f; --ok-bg:#0f2c20;
-  --warn:#f0b429; --warn-bg:#3a2c0c;
-  --crit:#ff5c81; --crit-bg:#3a1220;
-  color-scheme: dark;
-}
-*{box-sizing:border-box}
+*{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
 body{
-  background:var(--bg); color:var(--ink); font-family:var(--body);
-  margin:0; padding-inline:16px; padding-block:32px;
-  display:flex; justify-content:center;
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-head);
+  font-size:16px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
 }
-.page{ width:100%; max-width:760px; }
-.eyebrow{
-  font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase;
-  color:var(--brand-2); margin:0 0 8px;
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior:auto; }
+  *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
 }
-h1{
-  font-family:var(--display); font-weight:700; font-size:clamp(32px,7vw,52px);
-  line-height:.95; margin:0 0 12px; text-wrap:balance; color:var(--ink);
-}
-.lede{ color:var(--ink-dim); font-size:16px; line-height:1.5; max-width:58ch; margin:0 0 28px; }
+a{ color:inherit; }
+.wrap{ max-width:1180px; margin:0 auto; padding:0 24px; }
+.mono{ font-family:var(--font-mono); }
+button{ font-family:inherit; }
 
-.panel{
-  background:var(--surface); border:1px solid var(--border); border-radius:14px;
-  padding:20px; margin-bottom:20px;
-}
-.panel h2{ font-family:var(--display); font-size:20px; margin:0 0 4px; font-weight:700; }
-.panel .sub{ color:var(--ink-dim); font-size:13px; margin:0 0 16px; }
-
-details.setup{ margin-bottom:20px; }
-details.setup summary{
-  cursor:pointer; font-family:var(--mono); font-size:13px; color:var(--brand);
-  padding:12px 16px; background:var(--surface-2); border-radius:10px; border:1px solid var(--border);
-  list-style:none; display:flex; align-items:center; gap:8px;
-}
-details.setup summary::-webkit-details-marker{ display:none; }
-details.setup summary::before{ content:'\25B8'; transition:transform .15s; }
-details.setup[open] summary::before{ transform:rotate(90deg); }
-.setup-body{ padding:16px 4px 4px; font-size:14px; color:var(--ink-dim); line-height:1.6; }
-.setup-body ol{ padding-left:20px; }
-.setup-body a{ color:var(--brand); }
-.key-row{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
-.key-row input{ flex:1; min-width:200px; }
-.key-status{ font-family:var(--mono); font-size:12px; margin-top:8px; }
-.key-status.set{ color:var(--ok); }
-.key-status.unset{ color:var(--ink-dim); }
-
-label{ display:block; font-family:var(--mono); font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); margin-bottom:6px; }
-input[type=text]{
-  width:100%; padding:11px 13px; border-radius:9px; border:1px solid var(--border);
-  background:var(--bg); color:var(--ink); font-family:var(--mono); font-size:15px;
-}
-input[type=text]:focus{ outline:2px solid var(--brand); outline-offset:1px; }
-
-.lookup-row{ display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; }
-.lookup-row .field{ flex:1; min-width:180px; }
-button{
-  font-family:var(--body); font-weight:600; font-size:15px; cursor:pointer;
-  border-radius:9px; border:none; padding:12px 22px; background:var(--brand); color:#fff;
-  transition:background .15s;
-}
-button:hover{ background:#4a2475; }
-button:disabled{ opacity:.55; cursor:not-allowed; }
-button.ghost{ background:transparent; border:1px solid var(--border); color:var(--ink); }
-button.ghost:hover{ background:var(--surface-2); }
-
-.msg{ font-family:var(--mono); font-size:13px; margin-top:12px; }
-.msg.error{ color:var(--crit); }
-.msg.loading{ color:var(--ink-dim); }
-
-.example-tag{
-  display:inline-block; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
-  color:var(--brand-2); border:1px solid var(--brand-2); border-radius:999px; padding:2px 10px; margin-bottom:14px;
+a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible, [tabindex]:focus-visible{
+  outline:2px solid var(--cyan);
+  outline-offset:2px;
 }
 
-.verdict{ display:flex; align-items:center; gap:12px; margin-bottom:18px; }
-.verdict .stripe{ width:6px; align-self:stretch; border-radius:4px; min-height:44px; }
-.verdict .stripe.clear{ background:var(--ok); }
-.verdict .stripe.warn{ background:var(--warn); }
-.verdict .stripe.crit{ background:var(--crit); }
-.verdict .text .label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-dim); }
-.verdict .text .value{ font-family:var(--display); font-size:26px; font-weight:700; }
-.verdict .text .value.clear{ color:var(--ok); }
-.verdict .text .value.warn{ color:var(--warn); }
-.verdict .text .value.crit{ color:var(--crit); }
+.projectbar{ border-bottom:1px solid var(--line); padding:16px 0; }
+.projectbar .row{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; }
+.projectbar .id{ font-family:var(--font-mono); font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-2); }
+.projectbar .id b{ color:var(--text); font-weight:600; }
+.projectbar .links{ display:flex; gap:18px; flex-wrap:wrap; align-items:center; }
+.projectbar .links a{ font-family:var(--font-mono); font-size:12px; letter-spacing:0.08em; text-transform:uppercase; text-decoration:none; color:var(--text-2); border-bottom:1px solid transparent; padding-bottom:2px; }
+.projectbar .links a:hover{ color:var(--cyan); border-color:var(--cyan); }
+.status-pill{ display:inline-flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ok); border:1px solid rgba(53,208,127,0.35); background:rgba(53,208,127,0.08); padding:6px 12px; border-radius:999px; }
+.status-pill .dot{ width:7px; height:7px; border-radius:50%; background:var(--ok); box-shadow:0 0 8px var(--ok); }
 
-.identity{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 24px; margin-bottom:8px; }
-.identity .item{ min-width:0; }
-.identity .k{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-dim); margin-bottom:3px; }
-.identity .v{ font-size:15px; word-wrap:break-word; }
-@media (max-width:480px){ .identity{ grid-template-columns:1fr; } }
+.hero{ padding:64px 0 56px; border-bottom:1px solid var(--line); }
+.hero-grid{ display:grid; grid-template-columns:1.4fr 1fr; gap:48px; align-items:end; }
+.hero h1{ font-size:clamp(44px, 6vw, 88px); line-height:0.92; margin:0 0 18px; font-weight:700; letter-spacing:-0.02em; }
+.hero h1 span{ display:block; }
+.hero h1 span.grad{ background:linear-gradient(90deg, var(--pink), var(--violet)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.hero .lede{ font-size:clamp(17px, 1.6vw, 22px); color:var(--text-2); max-width:52ch; margin:0 0 22px; }
+.hero .byline{ font-family:var(--font-mono); font-size:13px; color:var(--text-2); text-transform:uppercase; letter-spacing:0.06em; }
+.hero .byline b{ color:var(--pink); font-weight:600; }
 
-.flags{ margin-top:18px; display:flex; flex-direction:column; gap:10px; }
-.flag{ display:flex; gap:12px; padding:12px 14px; border-radius:10px; }
-.flag.crit{ background:var(--crit-bg); }
-.flag.warn{ background:var(--warn-bg); }
-.flag.ok{ background:var(--ok-bg); }
-.flag .dot{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; font-weight:700; flex-shrink:0; padding-top:1px; }
-.flag.crit .dot{ color:var(--crit); }
-.flag.warn .dot{ color:var(--warn); }
-.flag.ok .dot{ color:var(--ok); }
-.flag p{ margin:0; font-size:14px; line-height:1.5; }
+.signal-panel{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:22px; }
+.signal-panel .cap{ font-family:var(--font-mono); font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-2); margin-bottom:14px; }
+.signal-step{ display:flex; gap:12px; align-items:baseline; padding:9px 0; border-bottom:1px solid var(--line); font-size:14px; }
+.signal-step:last-child{ border-bottom:none; }
+.signal-step .n{ font-family:var(--font-mono); color:var(--cyan); font-size:12px; }
 
-.checklist{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px; }
-.checklist li{ display:flex; gap:10px; font-size:14px; line-height:1.5; color:var(--ink); }
-.checklist li::before{ content:'\2713'; font-family:var(--mono); color:var(--brand-2); flex-shrink:0; }
+section{ padding:56px 0; border-bottom:1px solid var(--line); }
+section:last-of-type{ border-bottom:none; }
+.eyebrow{ font-family:var(--font-mono); font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:var(--violet); margin:0 0 10px; }
+h2{ font-size:clamp(28px, 3.2vw, 38px); margin:0 0 8px; font-weight:700; letter-spacing:-0.01em; }
+.section-sub{ color:var(--text-2); max-width:60ch; margin:0 0 28px; font-size:16px; }
 
-.foot{ font-size:12px; color:var(--ink-dim); line-height:1.6; margin-top:28px; padding-top:20px; border-top:1px solid var(--border); }
-.foot a{ color:var(--brand); }
+.mode-choice{ display:flex; gap:16px; flex-wrap:wrap; margin-bottom:28px; }
+.mode-card{ flex:1 1 260px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:20px; cursor:pointer; text-align:left; color:var(--text); transition:border-color .15s, transform .15s; }
+.mode-card:hover{ border-color:var(--violet); transform:translateY(-2px); }
+.mode-card[aria-pressed="true"]{ border-color:var(--pink); box-shadow:0 0 0 1px var(--pink), 0 0 24px rgba(255,45,149,0.18); }
+.mode-card .tag{ font-family:var(--font-mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--cyan); }
+.mode-card .title{ font-size:19px; font-weight:600; margin:8px 0 4px; }
+.mode-card .desc{ font-size:14px; color:var(--text-2); }
 
-.mode-toggle{ display:inline-flex; border:1px solid var(--border); border-radius:9px; overflow:hidden; margin-bottom:14px; }
-.mode-toggle button{ background:var(--surface-2); color:var(--ink-dim); border-radius:0; padding:8px 16px; font-size:13px; font-family:var(--mono); }
-.mode-toggle button:hover{ background:var(--surface-2); }
-.mode-toggle button.active{ background:var(--brand); color:#fff; }
+.command-bar{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:24px; }
+.command-bar .cap{ font-family:var(--font-mono); font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-2); margin-bottom:16px; }
+.command-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:stretch; }
+.seg{ display:flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; flex:0 0 auto; }
+.seg button{ background:transparent; border:none; color:var(--text-2); font-family:var(--font-mono); font-size:13px; letter-spacing:0.05em; padding:0 18px; min-height:52px; cursor:pointer; }
+.seg button[aria-pressed="true"]{ background:var(--surface-2); color:var(--cyan); }
+.command-row input[type=text]{ flex:1 1 260px; min-height:52px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); font-family:var(--font-mono); font-size:16px; padding:0 16px; }
+.command-row input[type=text]:focus{ border-color:var(--cyan); }
+.run-btn{ flex:0 0 auto; min-height:52px; padding:0 26px; border:none; border-radius:8px; background:linear-gradient(90deg, var(--pink), var(--violet)); color:#0B0710; font-weight:700; font-size:15px; cursor:pointer; display:inline-flex; align-items:center; gap:10px; transition:filter .15s, transform .1s; }
+.run-btn:hover{ filter:brightness(1.12); }
+.run-btn:active{ transform:scale(0.98); }
+.run-btn .arrow{ transition:transform .15s; }
+.run-btn:hover .arrow{ transform:translateX(4px); }
+.run-btn:disabled{ opacity:0.6; cursor:progress; }
 
-.result-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
-.copy-btn{ background:var(--surface-2); color:var(--ink); border:1px solid var(--border); padding:8px 14px; font-size:13px; white-space:nowrap; }
-.copy-btn:hover{ background:var(--surface); }
-.copy-btn.copied{ background:var(--ok-bg); color:var(--ok); border-color:var(--ok); }
+.check-row{ display:flex; gap:22px; flex-wrap:wrap; margin-top:18px; }
+.check-item{ display:flex; align-items:center; gap:9px; font-size:14px; color:var(--text-2); min-height:44px; }
+.check-item input{ width:18px; height:18px; accent-color:var(--pink); }
+.check-item label{ cursor:pointer; }
 
-.gauge-wrap{ display:flex; align-items:center; gap:18px; margin-bottom:18px; flex-wrap:wrap; }
-.gauge-wrap .text .label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-dim); }
-.gauge-wrap .text .value{ font-family:var(--display); font-size:26px; font-weight:700; }
-.gauge-wrap .text .value.clear{ color:var(--ok); }
-.gauge-wrap .text .value.warn{ color:var(--warn); }
-.gauge-wrap .text .value.crit{ color:var(--crit); }
-.gauge svg{ display:block; }
-.gauge .track{ fill:none; stroke:var(--border); stroke-width:10; }
-.gauge .fill{ fill:none; stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset .5s ease; }
-.gauge .fill.clear{ stroke:var(--ok); }
-.gauge .fill.warn{ stroke:var(--warn); }
-.gauge .fill.crit{ stroke:var(--crit); }
+.loading-line{ margin-top:16px; font-family:var(--font-mono); font-size:13px; color:var(--cyan); min-height:18px; }
 
-.history{ display:flex; flex-direction:column; gap:8px; }
-.history-empty{ color:var(--ink-dim); font-size:13px; }
-.history-item{
-  display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px;
-  background:var(--surface-2); cursor:pointer; border:1px solid transparent; text-align:left; width:100%;
-  font-family:var(--body); font-size:13px; color:var(--ink);
+.demo-banner{ border:1px dashed var(--violet); border-radius:var(--radius); padding:16px 20px; margin-top:20px; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; background:repeating-linear-gradient(135deg, rgba(139,92,246,0.06) 0 14px, rgba(139,92,246,0.02) 14px 28px); }
+.demo-banner .txt .cap{ font-family:var(--font-mono); font-size:12px; letter-spacing:0.1em; color:var(--violet); text-transform:uppercase; }
+.demo-banner .txt p{ margin:4px 0 0; font-size:14px; color:var(--text-2); max-width:60ch; }
+.ghost-btn{ background:transparent; border:1px solid var(--line); color:var(--text); border-radius:8px; padding:10px 16px; font-family:var(--font-mono); font-size:12px; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; min-height:44px; }
+.ghost-btn:hover{ border-color:var(--cyan); color:var(--cyan); }
+
+#resultPanel{ margin-top:32px; }
+.fade-in{ animation:fadeUp .35s ease both; }
+@keyframes fadeUp{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
+
+.decision-block{ border-radius:var(--radius); padding:28px; border:1px solid var(--line); position:relative; overflow:hidden; margin-bottom:20px; }
+.decision-block::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:6px; }
+.decision-block.crit{ background:rgba(255,77,109,0.07); }
+.decision-block.crit::before{ background:var(--crit); box-shadow:0 0 16px var(--crit); }
+.decision-block.warn{ background:rgba(255,184,77,0.07); }
+.decision-block.warn::before{ background:var(--warn); box-shadow:0 0 16px var(--warn); }
+.decision-block.ok{ background:rgba(53,208,127,0.07); }
+.decision-block.ok::before{ background:var(--ok); box-shadow:0 0 16px var(--ok); }
+
+.decision-block .label{ font-family:var(--font-mono); font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-2); }
+.decision-block h3{ font-size:clamp(30px, 4vw, 52px); margin:6px 0 14px; font-weight:700; letter-spacing:-0.01em; }
+.decision-block.crit h3{ color:var(--crit); }
+.decision-block.warn h3{ color:var(--warn); }
+.decision-block.ok h3{ color:var(--ok); }
+.decision-block .why{ font-size:16px; color:var(--text); max-width:70ch; margin:0 0 16px; }
+.decision-counts{ display:flex; gap:24px; flex-wrap:wrap; font-family:var(--font-mono); font-size:13px; }
+.decision-counts span b{ font-size:16px; }
+.decision-counts .c-stop b{ color:var(--crit); }
+.decision-counts .c-verify b{ color:var(--warn); }
+.decision-counts .c-note b{ color:var(--cyan); }
+
+.copy-btn{ margin-top:18px; }
+
+.record-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-bottom:24px; }
+.record-cell{ background:var(--surface); padding:16px; }
+.record-cell .k{ font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-2); margin-bottom:6px; }
+.record-cell .v{ font-size:15px; font-weight:600; }
+.record-cell.wide{ grid-column:span 2; }
+
+.signal-summary{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:18px; font-family:var(--font-mono); font-size:13px; letter-spacing:0.04em; }
+.pill{ display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; border:1px solid var(--line); }
+.pill.stop{ color:var(--crit); border-color:rgba(255,77,109,0.4); }
+.pill.verify{ color:var(--warn); border-color:rgba(255,184,77,0.4); }
+.pill.note{ color:var(--cyan); border-color:rgba(110,231,231,0.4); }
+
+.signal-row{ border:1px solid var(--line); border-radius:8px; margin-bottom:10px; overflow:hidden; }
+.signal-row summary{ list-style:none; cursor:pointer; padding:14px 16px; display:flex; align-items:center; gap:12px; font-size:15px; min-height:44px; }
+.signal-row summary::-webkit-details-marker{ display:none; }
+.signal-row summary .tag{ font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; padding:3px 9px; border-radius:5px; flex:0 0 auto; }
+.signal-row.crit summary .tag{ background:rgba(255,77,109,0.15); color:var(--crit); }
+.signal-row.warn summary .tag{ background:rgba(255,184,77,0.15); color:var(--warn); }
+.signal-row.info summary .tag{ background:rgba(110,231,231,0.15); color:var(--cyan); }
+.signal-row.ok summary .tag{ background:rgba(53,208,127,0.15); color:var(--ok); }
+.signal-row summary .plus{ margin-left:auto; font-family:var(--font-mono); color:var(--text-2); }
+.signal-row[open] summary .plus{ transform:rotate(45deg); }
+.signal-row .body{ padding:0 16px 16px; color:var(--text-2); font-size:14px; border-top:1px solid var(--line); padding-top:14px; }
+
+.term{ border-bottom:1px dotted var(--cyan); cursor:pointer; color:inherit; background:none; font:inherit; padding:0; }
+.term-pop{ display:none; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:12px 14px; font-size:13px; color:var(--text-2); margin-top:8px; max-width:60ch; }
+.term-pop.open{ display:block; }
+.term-pop b{ color:var(--text); }
+
+.checklist-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; }
+.check-group{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:20px; }
+.check-group h4{ font-size:16px; margin:0 0 14px; text-transform:uppercase; letter-spacing:0.04em; font-family:var(--font-mono); color:var(--pink); }
+.check-group ol{ margin:0; padding-left:20px; }
+.check-group li{ font-size:14px; margin-bottom:12px; color:var(--text); }
+.check-group li .why{ display:block; font-size:12px; color:var(--text-2); margin-top:3px; }
+
+.tier-row{ display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; }
+.tier-card{ border-radius:var(--radius); padding:22px; border:1px solid var(--line); }
+.tier-card .code{ font-family:var(--font-mono); font-size:13px; letter-spacing:0.08em; }
+.tier-card.stop{ border-top:3px solid var(--crit); }
+.tier-card.stop .code{ color:var(--crit); }
+.tier-card.verify{ border-top:3px solid var(--warn); }
+.tier-card.verify .code{ color:var(--warn); }
+.tier-card.context{ border-top:3px solid var(--cyan); }
+.tier-card.context .code{ color:var(--cyan); }
+.tier-card h4{ font-size:19px; margin:10px 0; }
+.tier-card p{ font-size:14px; color:var(--text-2); margin:0 0 12px; }
+.tier-card ul{ margin:0; padding-left:18px; font-size:13px; color:var(--text-2); }
+.tier-card ul li{ margin-bottom:6px; }
+
+.recent-wrap{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px; }
+.recent-scroll{ display:flex; gap:12px; overflow-x:auto; padding-bottom:6px; }
+.recent-card{ flex:0 0 220px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:14px; cursor:pointer; text-align:left; color:var(--text); }
+.recent-card:hover{ border-color:var(--violet); }
+.recent-card .name{ font-size:14px; font-weight:600; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.recent-card .meta{ font-family:var(--font-mono); font-size:11px; color:var(--text-2); display:flex; justify-content:space-between; }
+.recent-card .status{ font-family:var(--font-mono); font-size:11px; text-transform:uppercase; margin-top:8px; }
+.recent-card .status.crit{ color:var(--crit); }
+.recent-card .status.warn{ color:var(--warn); }
+.recent-card .status.ok{ color:var(--ok); }
+.recent-card .status.demo{ color:var(--violet); }
+.empty-note{ color:var(--text-2); font-size:14px; }
+
+.setup-box{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:24px; }
+.setup-box ol{ padding-left:20px; font-size:14px; color:var(--text); }
+.setup-box li{ margin-bottom:12px; }
+.key-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+.key-row input{ flex:1 1 260px; min-height:48px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); font-family:var(--font-mono); font-size:14px; padding:0 14px; }
+.key-status{ font-family:var(--font-mono); font-size:12px; color:var(--ok); margin-top:10px; min-height:16px; }
+
+footer{ padding:56px 0 80px; }
+.sig-code{ font-family:var(--font-mono); font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-2); }
+footer h3{ font-size:24px; margin:10px 0 4px; }
+footer .role{ font-family:var(--font-mono); font-size:13px; color:var(--pink); margin-bottom:18px; }
+footer .disclaimer{ font-size:14px; color:var(--text-2); max-width:70ch; margin-bottom:22px; }
+footer .foot-links{ display:flex; gap:22px; flex-wrap:wrap; }
+footer .foot-links a, footer .foot-links span{ font-family:var(--font-mono); font-size:12px; letter-spacing:0.08em; text-transform:uppercase; text-decoration:none; color:var(--text-2); border-bottom:1px solid transparent; padding-bottom:2px; }
+footer .foot-links a:hover{ color:var(--cyan); border-color:var(--cyan); }
+footer .foot-links span.disabled{ color:#5A5262; cursor:not-allowed; }
+
+@media (max-width: 900px){
+  .hero-grid{ grid-template-columns:1fr; }
+  .record-grid{ grid-template-columns:repeat(2,1fr); }
+  .record-cell.wide{ grid-column:span 2; }
+  .checklist-grid{ grid-template-columns:1fr; }
+  .tier-row{ grid-template-columns:1fr; }
+  .command-row input[type=text]{ order:3; flex-basis:100%; }
+  .run-btn{ flex:1 1 100%; justify-content:center; }
+  .seg{ flex:1 1 auto; }
+  .seg button{ flex:1 1 auto; }
 }
-.history-item:hover{ border-color:var(--border); }
-.history-item .swatch{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
-.history-item .swatch.clear{ background:var(--ok); }
-.history-item .swatch.warn{ background:var(--warn); }
-.history-item .swatch.crit{ background:var(--crit); }
-.history-item .hname{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.history-item .hmeta{ font-family:var(--mono); font-size:11px; color:var(--ink-dim); flex-shrink:0; }
-
-.flag.info{ background:var(--surface-2); }
-.flag.info .dot{ color:var(--ink-dim); }
-
-.method-tier{ margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--border); }
-.method-tier:last-child{ border-bottom:none; margin-bottom:0; padding-bottom:0; }
-.method-tier .tier-label{
-  font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.1em; font-weight:600;
-  display:inline-block; padding:2px 10px; border-radius:999px; margin-bottom:8px;
+@media (max-width: 560px){
+  .record-grid{ grid-template-columns:1fr; }
+  .record-cell.wide{ grid-column:span 1; }
 }
-.method-tier.stop .tier-label{ color:var(--crit); background:var(--crit-bg); }
-.method-tier.verify .tier-label{ color:var(--warn); background:var(--warn-bg); }
-.method-tier.watch .tier-label{ color:var(--ink-dim); background:var(--surface-2); }
-.method-tier p{ margin:0 0 6px; font-size:14px; line-height:1.55; color:var(--ink); }
-.method-tier p:last-child{ margin-bottom:0; }
-.method-tier .rationale{ color:var(--ink-dim); font-size:13px; }
-
-.checkbox-row{ display:flex; align-items:flex-start; gap:8px; margin-top:14px; }
-.checkbox-row input{ margin-top:3px; accent-color:var(--brand); width:16px; height:16px; flex-shrink:0; }
-.checkbox-row label{ text-transform:none; letter-spacing:normal; font-size:14px; color:var(--ink); font-family:var(--body); margin-bottom:0; cursor:pointer; }
 </style>
+</head>
+<body>
 
-<div class="page">
-  <p class="eyebrow">Pre-Tender Screening</p>
-  <h1>Carrier Risk Check</h1>
-  <p class="lede">Paste a carrier's USDOT number before you tender a load. This pulls their live federal registration record and flags the patterns that show up before a fraudulent or double-brokered pickup — no guesswork, just what's actually on file with FMCSA.</p>
-
-  <details class="setup" id="methodPanel">
-    <summary>How this is scored (methodology)</summary>
-    <div class="setup-body">
-      <div class="method-tier stop">
-        <span class="tier-label">Tier 1 — Hard stop</span>
-        <p><strong>Active out-of-service order.</strong> Non-negotiable. The carrier is federally barred from operating, full stop.</p>
-        <p><strong>No active operating authority on file, for an interstate for-hire move.</strong> Without authority, the move itself isn't legal — this outranks a simple "not authorized" flag because it means there's no authority to fall back on at all.</p>
-        <p><strong>Explicitly listed as not authorized to operate.</strong> Same failure category, called out separately because it can trip even when an authority technically exists on paper.</p>
-      </div>
-      <div class="method-tier verify">
-        <span class="tier-label">Tier 2 — Verify before tendering</span>
-        <p><strong>Carrier is new and freshly bidding your lane.</strong> A serious trigger for manual verification — not an automatic pass or fail.</p>
-        <p><strong>Fleet size doesn't match the load.</strong> A one-truck, one-driver operation taking high-value freight is a capacity and control mismatch worth confirming, not a disqualifier by itself.</p>
-      </div>
-      <div class="method-tier watch">
-        <span class="tier-label">Tier 3 — Low signal</span>
-        <p><strong>Overdue MCS-150 filing.</strong> On its own this is administrative lag, not fraud — it's the lowest-weight signal in this model. It only matters if the underlying authority has actually gone inactive, and if that's true, Tier 1 already caught it.</p>
-      </div>
-      <p class="rationale">This ranking reflects which failures make a move illegal versus which ones just call for a closer look before booking. Built from firsthand logistics-analyst judgment, not a generic checklist.</p>
+<div class="projectbar">
+  <div class="wrap row">
+    <div class="id"><b>MERCEDES MILEY</b> / THE LAB / PROJECT 001</div>
+    <div class="links">
+      <a href="#methodology">METHODOLOGY</a>
+      <a href="https://github.com/Mmiley112/carrier-risk-check" target="_blank" rel="noopener">VIEW SOURCE ↗</a>
+      <span class="status-pill"><span class="dot"></span> WORKING PROTOTYPE</span>
     </div>
-  </details>
+  </div>
+</div>
 
-  <details class="setup" id="setupPanel">
-    <summary>Set up your free FMCSA key (one-time, no cost)</summary>
-    <div class="setup-body">
-      <p>This tool reads live from FMCSA's public carrier database. It's free and does not require a credit card or a Google Cloud billing account — just a government login.</p>
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <h1><span>CARRIER</span><span class="grad">RISK CHECK</span></h1>
+      <p class="lede">A pre-tender carrier screening tool built to separate federal hard stops from the signals that require human verification.</p>
+      <p class="byline">Built by <b>Mercedes Miley</b> — Operations • Logistics • Carrier Risk</p>
+    </div>
+    <div class="signal-panel">
+      <div class="cap">Decision Signal</div>
+      <div class="signal-step"><span class="n">01</span><span>Eligibility</span></div>
+      <div class="signal-step"><span class="n">02</span><span>Authority</span></div>
+      <div class="signal-step"><span class="n">03</span><span>Identity</span></div>
+      <div class="signal-step"><span class="n">04</span><span>Capacity</span></div>
+      <div class="signal-step"><span class="n">05</span><span>Human verification</span></div>
+    </div>
+  </div>
+</header>
+
+<section id="checkSection">
+  <div class="wrap">
+    <div class="eyebrow">Run a review</div>
+    <h2>Before a load moves, separate what stops the carrier from what simply deserves a closer look.</h2>
+    <p class="section-sub">Carrier Risk Check reviews public FMCSA registration data, identifies federal hard stops, and organizes the remaining signals for human verification. Because a clean record can confirm eligibility — but it can't confirm who is actually behind the email.</p>
+
+    <div class="mode-choice">
+      <button class="mode-card" id="chooseDemo" aria-pressed="false" type="button">
+        <div class="tag">No key required</div>
+        <div class="title">Try a demo carrier</div>
+        <div class="desc">Loads a fictional carrier record so you can see how the review works.</div>
+      </button>
+      <button class="mode-card" id="chooseLive" aria-pressed="true" type="button">
+        <div class="tag">Free FMCSA key</div>
+        <div class="title">Run a live FMCSA check</div>
+        <div class="desc">Pulls a real registration record for a USDOT or MC number you provide.</div>
+      </button>
+    </div>
+
+    <div class="command-bar">
+      <div class="cap">Start a carrier review</div>
+      <div class="command-row">
+        <div class="seg" id="modeToggle" role="group" aria-label="Lookup type">
+          <button type="button" data-mode="dot" aria-pressed="true">USDOT</button>
+          <button type="button" data-mode="mc" aria-pressed="false">MC / DOCKET</button>
+        </div>
+        <input type="text" id="dotInput" inputmode="numeric" placeholder="Enter USDOT number" aria-label="Carrier number">
+        <button class="run-btn" id="runBtn" type="button">RUN CHECK <span class="arrow">→</span></button>
+      </div>
+      <div class="check-row">
+        <div class="check-item">
+          <input type="checkbox" id="carrierNew">
+          <label for="carrierNew">Carrier is new to me</label>
+        </div>
+        <div class="check-item">
+          <input type="checkbox" id="highValue">
+          <label for="highValue">High-value load</label>
+        </div>
+        <div class="check-item">
+          <input type="checkbox" id="timeSensitive">
+          <label for="timeSensitive">Time-sensitive pickup</label>
+        </div>
+      </div>
+      <div class="loading-line" id="loadingLine" aria-live="polite"></div>
+    </div>
+
+    <div id="demoBannerHost"></div>
+    <div id="resultPanel"></div>
+  </div>
+</section>
+
+<section id="checklistSection">
+  <div class="wrap">
+    <div class="eyebrow">Manual verification</div>
+    <h2>The record clears the number. It can't clear the person.</h2>
+    <p class="section-sub">A clean FMCSA record confirms the carrier's eligibility to operate. It does not confirm that the person or company contacting you is who they claim to be. Run these before tendering, every time.</p>
+    <div class="checklist-grid">
+      <div class="check-group">
+        <h4>Verify the identity</h4>
+        <ol>
+          <li>Call the phone number in the federal record.<span class="why">Not the number in the email signature — the one FMCSA has on file.</span></li>
+          <li>Compare the email domain with the carrier's known business identity.<span class="why">A mismatch is one of the most common double-brokering tells.</span></li>
+          <li>Confirm the dispatcher and booked contact.<span class="why">Names swapped mid-booking are a pressure tactic, not a coincidence.</span></li>
+        </ol>
+      </div>
+      <div class="check-group">
+        <h4>Verify the truck</h4>
+        <ol>
+          <li>Confirm tractor, trailer, and driver information.<span class="why">Match it against what's on file, not just what's texted to you.</span></li>
+          <li>Compare pickup equipment with what was booked.<span class="why">Substitutions at pickup are a common last-mile fraud vector.</span></li>
+          <li>Investigate unexplained substitutions.<span class="why">A reasonable explanation exists. Get it before the truck leaves.</span></li>
+        </ol>
+      </div>
+      <div class="check-group">
+        <h4>Verify the money</h4>
+        <ol>
+          <li>Confirm insurance through an independent source.<span class="why">Not a certificate emailed to you — call the carrier directly.</span></li>
+          <li>Question last-minute factoring or remit-to changes.<span class="why">This is the single most common double-brokering red flag.</span></li>
+          <li>Treat a rate far below the lane as a reason to verify, not a bargain.<span class="why">Underpriced capacity is bait, not luck.</span></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="methodology">
+  <div class="wrap">
+    <div class="eyebrow">How I classify risk</div>
+    <h2>Three tiers. Not every flag means the same thing.</h2>
+    <p class="section-sub">This is my own ranking, built from how these failures actually show up in freight — not a generic scoring model. A hard stop and a reason to double-check are not the same category, and treating them the same is how real fraud gets missed.</p>
+    <div class="tier-row">
+      <div class="tier-card stop">
+        <div class="code">01 / STOP</div>
+        <h4>Federal hard stop</h4>
+        <p>The load does not move until the federal prohibition or eligibility failure is resolved. No exceptions.</p>
+        <ul>
+          <li>Active out-of-service order</li>
+          <li>Required operating authority is not active</li>
+          <li>Carrier explicitly not authorized for the movement</li>
+        </ul>
+      </div>
+      <div class="tier-card verify">
+        <div class="code">02 / VERIFY</div>
+        <h4>Verification trigger</h4>
+        <p>Not an automatic rejection. Confirm the carrier, equipment, coverage, and load fit before tendering.</p>
+        <ul>
+          <li>Carrier is unfamiliar and freshly bidding</li>
+          <li>Single-truck / single-driver on a high-value load</li>
+          <li>Time pressure on the tender itself</li>
+        </ul>
+      </div>
+      <div class="tier-card context">
+        <div class="code">03 / CONTEXT</div>
+        <h4>Administrative note</h4>
+        <p>Worth noticing, but not strong enough to determine the decision by itself — unless it's paired with a Tier 1 failure.</p>
+        <ul>
+          <li>MCS-150 filing appears overdue</li>
+          <li>Small fleet size, by itself</li>
+          <li>No inspection history for a genuinely new entrant</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="recentSection">
+  <div class="wrap">
+    <div class="recent-wrap">
+      <div>
+        <div class="eyebrow">Recent checks</div>
+        <h2 style="margin-bottom:0;">Your last few lookups</h2>
+      </div>
+      <button class="ghost-btn" id="clearHistoryBtn" type="button">CLEAR HISTORY</button>
+    </div>
+    <div class="recent-scroll" id="historyList"></div>
+  </div>
+</section>
+
+<section id="setupSection">
+  <div class="wrap">
+    <div class="eyebrow">FMCSA key setup</div>
+    <h2>Set up your free FMCSA key</h2>
+    <p class="section-sub">FMCSA's QCMobile API is free and requires no billing information — just a government WebKey. Takes about two minutes.</p>
+    <div class="setup-box">
       <ol>
-        <li>Create or sign in to a <a href="https://login.gov" target="_blank" rel="noopener">Login.gov</a> account.</li>
-        <li>Go to the <a href="https://mobile.fmcsa.dot.gov/QCDevsite/docs/getStarted" target="_blank" rel="noopener">FMCSA Developer site</a>, sign in, and request a WebKey under "My WebKeys."</li>
-        <li>Paste the key below. It's saved only in this browser, on this device.</li>
+        <li>Create a free account at <a href="https://login.gov" target="_blank" rel="noopener" class="mono">login.gov</a> if you don't already have one.</li>
+        <li>Sign in at <a href="https://mobile.fmcsa.dot.gov/QCDevsite/docs/getStarted" target="_blank" rel="noopener" class="mono">FMCSA's QCMobile developer portal</a> and request a WebKey. It's issued instantly — no billing, no approval wait.</li>
+        <li>Paste the key below. It's stored only in this browser, never sent anywhere but FMCSA.</li>
       </ol>
       <div class="key-row">
-        <input type="text" id="webKeyInput" placeholder="Paste your FMCSA WebKey">
-        <button id="saveKeyBtn">Save key</button>
-        <button class="ghost" id="clearKeyBtn">Clear</button>
+        <input type="text" id="webKeyInput" placeholder="Paste your FMCSA WebKey here" autocomplete="off">
+        <button class="run-btn" id="saveKeyBtn" type="button">SAVE KEY</button>
+        <button class="ghost-btn" id="clearKeyBtn" type="button">CLEAR</button>
       </div>
-      <p class="key-status unset" id="keyStatus">No key saved yet — the example below still works.</p>
+      <div class="key-status" id="keyStatus"></div>
     </div>
-  </details>
-
-  <div class="panel">
-    <h2>Look up a carrier</h2>
-    <p class="sub">Most load boards post the MC number. Your own paperwork usually has the USDOT number. Either works.</p>
-    <div class="mode-toggle" id="modeToggle">
-      <button type="button" class="active" data-mode="dot">USDOT number</button>
-      <button type="button" data-mode="mc">MC / docket number</button>
-    </div>
-    <div class="lookup-row">
-      <div class="field">
-        <label for="dotInput" id="dotLabel">USDOT number</label>
-        <input type="text" id="dotInput" placeholder="e.g. 1234567" inputmode="numeric">
-      </div>
-      <button id="lookupBtn">Run check</button>
-    </div>
-    <div class="checkbox-row">
-      <input type="checkbox" id="freshCarrierCheck">
-      <label for="freshCarrierCheck">This carrier is new to me and is freshly bidding on this lane</label>
-    </div>
-    <p class="msg" id="statusMsg"></p>
   </div>
+</section>
 
-  <div class="panel" id="resultPanel"></div>
-
-  <div class="panel">
-    <div class="result-head">
-      <div>
-        <h2>Recent checks</h2>
-        <p class="sub">Saved on this device only — nobody else sees these.</p>
-      </div>
+<footer>
+  <div class="wrap">
+    <div class="sig-code">THE LAB / PROJECT 001</div>
+    <h3>Designed and built by Mercedes Miley</h3>
+    <div class="role">Operations • Logistics • Carrier Risk • Data Interpretation</div>
+    <p class="disclaimer">This tool organizes public federal information for human review. It does not certify that a carrier or contact is legitimate.</p>
+    <div class="foot-links">
+      <a href="#methodology">VIEW METHODOLOGY</a>
+      <a href="https://github.com/Mmiley112/carrier-risk-check" target="_blank" rel="noopener">VIEW SOURCE</a>
+      <span class="disabled">RETURN TO PORTFOLIO</span>
     </div>
-    <div class="history" id="historyList"></div>
   </div>
-
-  <div class="panel">
-    <h2>Manual verification checklist</h2>
-    <p class="sub">FMCSA data catches a stale or revoked authority. It can't see who you're actually emailing. Run these every time, regardless of what the check above shows.</p>
-    <ul class="checklist">
-      <li>Call the carrier back on the phone number on file with FMCSA — not the number in the load board message or email signature.</li>
-      <li>Check the dispatch email domain against the carrier's legal name. A Gmail/Yahoo address dispatching for an established fleet is a mismatch worth a phone call.</li>
-      <li>Be suspicious of a "new" remit-to or factoring company introduced after the load is already booked — this is the single most common moment double-brokering surfaces.</li>
-      <li>Cross-check the truck and driver that show up at pickup against what was booked. A different tractor or an unfamiliar driver with no explanation is a red flag on its own.</li>
-      <li>If the carrier is brand new to you and bidding well under lane average on a high-value load, treat the low price as a flag, not a win.</li>
-    </ul>
-  </div>
-
-  <p class="foot">
-    Built on FMCSA's public QCMobile carrier data. This screens for documented risk indicators — it does not guarantee a carrier is legitimate or fraudulent, and it isn't a substitute for your own vetting process. Data reflects whatever FMCSA has on file at the moment of lookup.
-    <br><br>
-    Part of Mercedes Miley's <a href="#" onclick="return false;">Curiosity, Made Tangible</a> — logistics knowledge turned into working tools.
-  </p>
-</div>
+</footer>
 
 <script>
 (function(){
-  'use strict';
+  "use strict";
 
-  var KEY_STORAGE = 'crc_fmcsa_webkey';
+  var GLOSSARY = {
+    "operating authority": "FMCSA permission allowing a carrier to perform certain interstate, for-hire transportation. An active USDOT number and active operating authority are not the same thing.",
+    "mcs-150": "The biennial update carriers file with FMCSA to keep their census information current. Overdue on its own is administrative lag, not fraud.",
+    "out-of-service": "A federal order barring a carrier from operating at all, typically issued after a serious safety or compliance failure.",
+    "power unit": "A truck tractor or straight truck capable of pulling or carrying freight — the FMCSA term for a carrier's operating vehicles.",
+    "for-hire": "A carrier that transports freight belonging to others for payment, as opposed to hauling its own goods (private carriage)."
+  };
 
-  function getKey(){
-    try { return localStorage.getItem(KEY_STORAGE) || ''; } catch(e){ return ''; }
-  }
-  function setKey(v){
-    try { localStorage.setItem(KEY_STORAGE, v); } catch(e){}
-  }
-  function clearKey(){
-    try { localStorage.removeItem(KEY_STORAGE); } catch(e){}
-  }
+  function getKey(){ try{ return localStorage.getItem('crc_fmcsa_webkey') || ''; }catch(e){ return ''; } }
+  function setKey(k){ try{ localStorage.setItem('crc_fmcsa_webkey', k); }catch(e){} }
+  function clearKeyStore(){ try{ localStorage.removeItem('crc_fmcsa_webkey'); }catch(e){} }
 
-  function refreshKeyStatus(){
-    var status = document.getElementById('keyStatus');
-    var k = getKey();
-    if(k){
-      status.textContent = 'Key saved on this device — live lookups are active.';
-      status.className = 'key-status set';
-    } else {
-      status.textContent = 'No key saved yet — the example below still works.';
-      status.className = 'key-status unset';
-    }
-  }
-
-  document.getElementById('saveKeyBtn').addEventListener('click', function(){
-    var v = document.getElementById('webKeyInput').value.trim();
-    if(v){ setKey(v); refreshKeyStatus(); document.getElementById('setupPanel').removeAttribute('open'); }
-  });
-  document.getElementById('clearKeyBtn').addEventListener('click', function(){
-    clearKey();
-    document.getElementById('webKeyInput').value = '';
-    refreshKeyStatus();
-  });
-
-  // ---- Scoring logic ----
-  // Reads whichever of these shapes the API hands back and normalizes to one flat object.
-  function normalizeCarrier(raw){
-    var c = raw;
-    if(raw && raw.content){
-      c = raw.content.carrier || raw.content;
-    }
-    if(Array.isArray(c)){ c = c[0] && c[0].carrier ? c[0].carrier : c[0]; }
-    return c || {};
-  }
+  function getHistory(){ try{ return JSON.parse(localStorage.getItem('crc_history')||'[]'); }catch(e){ return []; } }
+  function setHistory(h){ try{ localStorage.setItem('crc_history', JSON.stringify(h.slice(0,8))); }catch(e){} }
 
   function truthy(v){
-    if(typeof v === 'boolean') return v;
-    if(typeof v === 'string') return v.toUpperCase() === 'Y' || v.toUpperCase() === 'YES' || v.toUpperCase() === 'TRUE';
+    if(v === true) return true;
+    if(typeof v === 'string') return ['Y','YES','TRUE','1'].indexOf(v.trim().toUpperCase()) !== -1;
     return false;
   }
 
-  // Three-tier model (Mercedes's ranking, in priority order within each tier):
-  //   Tier 1 — hard stop: OOS order > no active authority (for-hire/interstate) > explicitly not authorized
-  //   Tier 2 — verify, not a rejection: brand-new carrier bidding > single-truck/driver on a big load
-  //   Tier 3 — low signal on its own: overdue MCS-150 (only matters if paired with Tier 1's authority failure)
+  function normalizeCarrier(raw){
+    var c = raw;
+    if(raw && raw.content && raw.content.carrier) c = raw.content.carrier;
+    else if(Array.isArray(raw) && raw.length) c = raw[0].content ? raw[0].content.carrier : raw[0];
+    else if(raw && raw.carrier) c = raw.carrier;
+    return c || {};
+  }
+
   function computeFlags(c, opts){
     opts = opts || {};
     var flags = [];
+    var isAllowed = (c.allowedToOperate === 'Y' || c.allowedToOperate === true) ? true :
+                    (c.allowedToOperate === 'N' || c.allowedToOperate === false) ? false : null;
+    var hasCommon = truthy(c.commonAuthorityStatus) || c.commonAuthorityStatus === 'A';
+    var hasContract = truthy(c.contractAuthorityStatus) || c.contractAuthorityStatus === 'A';
+    var authorityFields = [c.commonAuthorityStatus, c.contractAuthorityStatus, c.brokerAuthorityStatus].filter(function(v){ return v !== undefined && v !== null && v !== ''; });
+    var hasAnyAuthorityOnFile = authorityFields.length > 0;
+    var hasActiveAuthority = hasCommon || hasContract;
+    var looksForHire = true;
 
-    var common = (c.commonAuthorityStatus || '').toString().toUpperCase();
-    var contract = (c.contractAuthorityStatus || '').toString().toUpperCase();
-    var broker = (c.brokerAuthorityStatus || '').toString().toUpperCase();
-    var hasAnyAuthorityOnFile = !!(common || contract || broker);
-    var hasActiveAuthority = [common, contract, broker].some(function(s){ return s.indexOf('A') === 0 || s === 'ACTIVE'; });
-
-    var opDesc = (c.carrierOperation && c.carrierOperation.carrierOperationDesc ? c.carrierOperation.carrierOperationDesc : c.carrierOperation || '').toString().toUpperCase();
-    var looksForHire = opDesc.indexOf('FOR HIRE') !== -1 || opDesc.indexOf('INTERSTATE') !== -1 || opDesc === '';
-
-    var allowed = c.allowedToOperate;
-    var isAllowed = allowed === undefined || allowed === null ? null : truthy(allowed);
-
-    // Tier 1, in her stated order of severity.
     if(c.oosDate){
-      flags.push({level:'crit', tier:1, text:'Active out-of-service order on file (' + c.oosDate + '). Hard stop — this carrier is federally barred from operating, no exceptions.'});
+      flags.push({level:'crit', tier:1, text:"Active out-of-service order on file (" + c.oosDate + "). Hard stop — this carrier is federally barred from operating, no exceptions."});
     }
     if(hasAnyAuthorityOnFile && !hasActiveAuthority && looksForHire){
-      flags.push({level:'crit', tier:1, text:'No operating authority currently shows as active (common: ' + (common||'—') + ', contract: ' + (contract||'—') + ', broker: ' + (broker||'—') + '). Hard stop for an interstate for-hire move — there’s no authority to fall back on.'});
+      flags.push({level:'crit', tier:1, text:"No operating authority currently shows as active. Hard stop for an interstate for-hire move — there’s no authority to fall back on."});
     }
     if(isAllowed === false){
-      flags.push({level:'crit', tier:1, text:'FMCSA explicitly lists this carrier as NOT authorized to operate. Hard stop — do not tender to this DOT number until resolved.'});
+      flags.push({level:'crit', tier:1, text:"FMCSA explicitly lists this carrier as NOT authorized to operate. Hard stop — do not tender to this DOT number until resolved."});
     }
 
-    // Tier 2 — verification triggers, not disqualifiers.
-    if(opts.freshCarrier){
-      flags.push({level:'warn', tier:2, text:'Flagged as new to you and freshly bidding this lane. Not a rejection — a serious trigger to verify identity, insurance, and equipment before booking.'});
+    if(opts.carrierNew){
+      flags.push({level:'warn', tier:2, text:"Flagged as new to you and freshly bidding this lane. Not a rejection — a serious trigger to verify identity, insurance, and equipment before booking."});
     }
     var drivers = parseInt(c.totalDrivers, 10);
     var units = parseInt(c.totalPowerUnits, 10);
     if(!isNaN(drivers) && !isNaN(units) && (drivers <= 1 || units <= 1)){
-      flags.push({level:'warn', tier:2, text:'One-truck / one-driver operation on file (drivers: ' + (isNaN(drivers)?'—':drivers) + ', power units: ' + (isNaN(units)?'—':units) + '). A capacity and control mismatch worth confirming against a high-value load — not a ban on its own.'});
+      var hvSuffix = opts.highValue ? " Paired with a high-value load, this combination deserves a direct call before booking." : " A capacity and control mismatch worth confirming against a high-value load — not a ban on its own.";
+      flags.push({level:'warn', tier:2, text:"One-truck / one-driver operation on file (" + (isNaN(units)?'?':units) + " unit, " + (isNaN(drivers)?'?':drivers) + " driver)." + hvSuffix});
+    }
+    if(opts.timeSensitive){
+      flags.push({level:'warn', tier:2, text:"Marked as a time-sensitive pickup. Rushed tenders are a common pressure tactic — don't let the clock skip the verification steps above."});
     }
 
-    // Tier 3 — lowest weight, informational unless paired with a Tier 1 authority failure (already caught above).
     if(truthy(c.mcs150Outdated)){
-      flags.push({level:'info', tier:3, text:'Biennial MCS-150 update is overdue. On its own this is administrative lag, not fraud — it only escalates if the authority itself has actually gone inactive, which the checks above already cover.'});
+      flags.push({level:'info', tier:3, text:"Biennial MCS-150 update is overdue. On its own this is administrative lag, not fraud — it only escalates if the authority itself has actually gone inactive, which the checks above already cover."});
     }
 
     if(flags.length === 0){
-      flags.push({level:'ok', tier:0, text:'No red flags in FMCSA’s record: authorized to operate, no out-of-service order, active authority, MCS-150 current.'});
+      flags.push({level:'ok', tier:0, text:"No red flags in FMCSA’s record: authorized to operate, no out-of-service order, active authority, MCS-150 current."});
     }
-
     flags.sort(function(a,b){ return a.tier - b.tier; });
     return flags;
   }
 
   function overallLevel(flags){
-    if(flags.some(function(f){ return f.level === 'crit'; })) return 'crit';
-    if(flags.some(function(f){ return f.level === 'warn'; })) return 'warn';
-    return 'clear';
+    if(flags.some(function(f){ return f.level==='crit'; })) return 'crit';
+    if(flags.some(function(f){ return f.level==='warn'; })) return 'warn';
+    return 'ok';
   }
 
-  function verdictCopy(level){
-    if(level === 'crit') return 'Do not tender — critical issue found';
-    if(level === 'warn') return 'Proceed with manual verification';
-    return 'No red flags on file';
+  function decisionCopy(level){
+    if(level === 'crit') return { label:'Decision', headline:'DO NOT TENDER', why:'At least one federal hard stop is on file for this carrier. Resolve it before any load is tendered — there is no verification step that clears an active federal prohibition.' };
+    if(level === 'warn') return { label:'Decision', headline:'PAUSE AND VERIFY', why:'No federal hard stop, but one or more signals below need a human to confirm identity, equipment, or fit before this carrier gets the load.' };
+    return { label:'Federal record check', headline:'NO FEDERAL HARD STOP FOUND', why:'Identity verification is still required. A clean FMCSA record confirms eligibility to operate — it cannot confirm who is actually behind the email.' };
   }
 
-  function fieldRow(k, v){
-    return '<div class="item"><div class="k">' + k + '</div><div class="v">' + (v || '—') + '</div></div>';
-  }
-
-  // Gauge is a semicircle: 0 flags/clear = full green arc, crit = mostly-empty red arc.
-  function gaugeSvg(level){
-    var r = 34, cx = 40, cy = 40;
-    var circumference = Math.PI * r; // half circle
-    var pct = level === 'clear' ? 1 : level === 'warn' ? 0.6 : 0.25;
-    var offset = circumference * (1 - pct);
-    return '<svg width="80" height="46" viewBox="0 0 80 46" class="gauge">' +
-      '<path class="track" d="M 6 40 A 34 34 0 0 1 74 40" />' +
-      '<path class="fill ' + level + '" d="M 6 40 A 34 34 0 0 1 74 40" ' +
-        'stroke-dasharray="' + circumference + '" stroke-dashoffset="' + offset + '" />' +
-      '</svg>';
-  }
-
-  function buildReportText(carrier, flags, level){
-    var lines = [];
-    lines.push('CARRIER RISK CHECK');
-    lines.push(carrier.legalName || carrier.dbaName || 'Unknown carrier');
-    lines.push('USDOT ' + (carrier.dotNumber || '—'));
-    lines.push('Result: ' + verdictCopy(level));
-    lines.push('');
-    flags.forEach(function(f){
-      lines.push('[' + f.level.toUpperCase() + '] ' + f.text);
+  function linkifyGlossary(text){
+    var out = text;
+    Object.keys(GLOSSARY).forEach(function(term){
+      var re = new RegExp('(' + term.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') + ')', 'i');
+      if(re.test(out) && out.indexOf('data-term') === -1){
+        out = out.replace(re, '<button type="button" class="term" data-term="' + term + '">$1</button>');
+      }
     });
+    return out;
+  }
+
+  function fieldRow(k, v){ return { k:k, v: (v===undefined || v===null || v==='') ? '—' : v }; }
+
+  function buildReportText(c, flags, level){
+    var lines = [];
+    lines.push('CARRIER RISK CHECK -- ' + (level==='crit'?'DO NOT TENDER':level==='warn'?'PAUSE AND VERIFY':'NO FEDERAL HARD STOP FOUND'));
+    lines.push('Legal name: ' + (c.legalName||'--'));
+    lines.push('USDOT: ' + (c.dotNumber||'--') + '   MC/Docket: ' + (c.mcNumber||c.docketNumber||'--'));
+    lines.push('Power units: ' + (c.totalPowerUnits||'--') + '   Drivers: ' + (c.totalDrivers||'--'));
     lines.push('');
-    lines.push('Checked ' + new Date().toLocaleString());
+    lines.push('SIGNALS:');
+    flags.forEach(function(f){ lines.push('- [' + f.level.toUpperCase() + '] ' + f.text.replace(/—/g,'--').replace(/’/g,"'")); });
+    lines.push('');
+    lines.push('Generated by Carrier Risk Check -- Mercedes Miley');
     return lines.join('\n');
   }
 
-  function saveHistory(carrier, level, freshCarrier){
-    var hist = [];
-    try { hist = JSON.parse(localStorage.getItem('crc_history') || '[]'); } catch(e){}
-    hist.unshift({
-      dot: carrier.dotNumber,
-      name: carrier.legalName || carrier.dbaName || 'Unknown carrier',
-      level: level,
-      time: Date.now(),
-      carrier: carrier,
-      freshCarrier: !!freshCarrier
-    });
-    hist = hist.slice(0, 8);
-    try { localStorage.setItem('crc_history', JSON.stringify(hist)); } catch(e){}
-    renderHistory();
+  function tagLabel(level){
+    return level==='crit' ? 'STOP' : level==='warn' ? 'VERIFY' : level==='info' ? 'NOTE' : 'CLEAR';
   }
 
-  function renderHistory(){
-    var list = document.getElementById('historyList');
-    var hist = [];
-    try { hist = JSON.parse(localStorage.getItem('crc_history') || '[]'); } catch(e){}
-    if(!hist.length){
-      list.innerHTML = '<p class="history-empty">No checks saved yet on this device.</p>';
-      return;
-    }
-    list.innerHTML = hist.map(function(h, i){
-      var when = new Date(h.time).toLocaleDateString(undefined, {month:'short', day:'numeric'});
-      return '<button type="button" class="history-item" data-index="' + i + '">' +
-        '<span class="swatch ' + h.level + '"></span>' +
-        '<span class="hname">' + h.name + ' — DOT ' + (h.dot || '—') + '</span>' +
-        '<span class="hmeta">' + when + '</span>' +
-      '</button>';
-    }).join('');
-    Array.prototype.forEach.call(list.querySelectorAll('.history-item'), function(btn){
-      btn.addEventListener('click', function(){
-        var idx = parseInt(btn.getAttribute('data-index'), 10);
-        if(hist[idx]) render(hist[idx].carrier, {dot: hist[idx].dot, fromHistory:true, freshCarrier: hist[idx].freshCarrier});
-      });
-    });
+  function signalDetail(f){
+    if(f.tier === 1) return 'This is a federal hard stop. It means the carrier cannot legally perform the movement right now, regardless of price, equipment, or how the conversation has gone. Verify against FMCSA directly before proceeding, and do not accept an explanation in place of a corrected federal record.';
+    if(f.tier === 2) return 'This is a verification trigger, not a disqualifier. Confirm the specific detail in person (a phone call to the number on file, an independent insurance check, a direct equipment match) before tendering. Most legitimate carriers clear this in minutes.';
+    if(f.tier === 3) return 'This is administrative context. On its own it does not change the decision — it only matters if it is paired with an active tier-1 failure above.';
+    return 'No hard stop and no verification trigger surfaced in the federal record. Standard identity and equipment verification still applies before tendering.';
   }
 
   function render(carrier, opts){
     opts = opts || {};
-    var panel = document.getElementById('resultPanel');
-    var flags = computeFlags(carrier, {freshCarrier: !!opts.freshCarrier});
+    var c = carrier;
+    var flags = computeFlags(c, opts);
     var level = overallLevel(flags);
+    var stops = flags.filter(function(f){ return f.level==='crit'; }).length;
+    var verifies = flags.filter(function(f){ return f.level==='warn'; }).length;
+    var notes = flags.filter(function(f){ return f.level==='info'; }).length;
+    var dcopy = decisionCopy(level);
 
-    var name = carrier.legalName || carrier.dbaName || 'Unknown carrier';
-    var dba = carrier.dbaName && carrier.dbaName !== carrier.legalName ? carrier.dbaName : '';
-    var addr = [carrier.phyStreet, carrier.phyCity, carrier.phyState, carrier.phyZipcode].filter(Boolean).join(', ');
+    var bannerHost = document.getElementById('demoBannerHost');
+    if(opts.example){
+      bannerHost.innerHTML = '<div class="demo-banner fade-in">' +
+        '<div class="txt"><div class="cap">Demo mode</div><p>This is a fictional carrier record designed to show how the review works. Nothing below is a real federal lookup.</p></div>' +
+        '<button class="ghost-btn" id="tryLiveFromDemo" type="button">RUN A LIVE CHECK</button></div>';
+      var tl = document.getElementById('tryLiveFromDemo');
+      if(tl) tl.addEventListener('click', function(){ document.getElementById('dotInput').focus(); window.scrollTo({top: document.getElementById('checkSection').offsetTop - 20, behavior:'smooth'}); });
+    } else {
+      bannerHost.innerHTML = '';
+    }
 
-    var reportText = buildReportText(carrier, flags, level);
+    var recordCells = [
+      fieldRow('Legal name', c.legalName),
+      fieldRow('DBA', c.dbaName),
+      fieldRow('USDOT', c.dotNumber),
+      fieldRow('MC / Docket', c.mcNumber || c.docketNumber),
+      fieldRow('Operation', (c.carrierOperation && c.carrierOperation.carrierOperationDesc) || '—'),
+      fieldRow('Power units', c.totalPowerUnits),
+      fieldRow('Drivers', c.totalDrivers),
+      fieldRow('Location', [c.phyCity, c.phyState].filter(Boolean).join(', '))
+    ];
+
+    var recordHtml = recordCells.map(function(f, i){
+      return '<div class="record-cell' + (i===0?' wide':'') + '"><div class="k">' + f.k + '</div><div class="v">' + f.v + '</div></div>';
+    }).join('');
+
+    var signalRows = flags.map(function(f, i){
+      var rowClass = f.level==='crit'?'crit':f.level==='warn'?'warn':f.level==='info'?'info':'ok';
+      return '<details class="signal-row ' + rowClass + '"' + (i===0?' open':'') + '>' +
+        '<summary><span class="tag">' + tagLabel(f.level) + '</span><span>' + linkifyGlossary(f.text) + '</span><span class="plus">+</span></summary>' +
+        '<div class="body">' + signalDetail(f) + '</div>' +
+        '</details>';
+    }).join('');
 
     var html = '';
-    html += '<div class="result-head">';
-    html += '<div>';
-    if(opts.example){
-      html += '<span class="example-tag">Example result</span>';
-    }
-    html += '<h2>' + name + '</h2>';
-    html += '<p class="sub">USDOT ' + (carrier.dotNumber || opts.dot || '—') + (dba ? ' &middot; DBA ' + dba : '') + '</p>';
-    html += '</div>';
-    html += '<button type="button" class="copy-btn" id="copyReportBtn">Copy report</button>';
-    html += '</div>';
-
-    html += '<div class="gauge-wrap">';
-    html += '<div class="gauge">' + gaugeSvg(level) + '</div>';
-    html += '<div class="text"><div class="label">Result</div><div class="value ' + level + '">' + verdictCopy(level) + '</div></div>';
+    html += '<div class="decision-block ' + level + ' fade-in">';
+    html += '<div class="label">' + dcopy.label + '</div>';
+    html += '<h3>' + dcopy.headline + '</h3>';
+    html += '<p class="why">' + dcopy.why + '</p>';
+    html += '<div class="decision-counts">' +
+      '<span class="c-stop">STOPS <b>' + stops + '</b></span>' +
+      '<span class="c-verify">TO VERIFY <b>' + verifies + '</b></span>' +
+      '<span class="c-note">NOTES <b>' + notes + '</b></span></div>';
+    html += '<div class="copy-btn"><button class="ghost-btn" id="copyReportBtn" type="button">COPY REPORT</button></div>';
     html += '</div>';
 
-    html += '<div class="identity">';
-    html += fieldRow('Physical address', addr);
-    html += fieldRow('Operation type', carrier.carrierOperation && carrier.carrierOperation.carrierOperationDesc ? carrier.carrierOperation.carrierOperationDesc : carrier.carrierOperation);
-    html += fieldRow('Power units', carrier.totalPowerUnits);
-    html += fieldRow('Drivers', carrier.totalDrivers);
-    html += '</div>';
+    html += '<div class="record-grid fade-in">' + recordHtml + '</div>';
 
-    html += '<div class="flags">';
-    flags.forEach(function(f){
-      var dotLabel = f.level === 'crit' ? 'Stop' : f.level === 'warn' ? 'Verify' : f.level === 'info' ? 'Note' : 'Clear';
-      html += '<div class="flag ' + f.level + '"><div class="dot">' + dotLabel + '</div><p>' + f.text + '</p></div>';
+    html += '<div class="signal-summary fade-in">' +
+      '<span class="pill stop">' + stops + ' STOP</span>' +
+      '<span class="pill verify">' + verifies + ' VERIFY</span>' +
+      '<span class="pill note">' + notes + ' NOTE</span></div>';
+
+    html += '<div class="fade-in">' + signalRows + '</div>';
+
+    document.getElementById('resultPanel').innerHTML = html;
+
+    document.querySelectorAll('.term').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var term = btn.getAttribute('data-term');
+        var existing = btn.nextElementSibling;
+        if(existing && existing.classList.contains('term-pop')){
+          existing.classList.toggle('open');
+          return;
+        }
+        var pop = document.createElement('div');
+        pop.className = 'term-pop open';
+        var def = GLOSSARY[term.toLowerCase()] || '';
+        pop.innerHTML = '<b>' + term + '</b><br>' + def;
+        btn.insertAdjacentElement('afterend', pop);
+      });
     });
-    html += '</div>';
-
-    panel.innerHTML = html;
 
     var copyBtn = document.getElementById('copyReportBtn');
-    copyBtn.addEventListener('click', function(){
-      function markCopied(){
-        copyBtn.textContent = 'Copied';
-        copyBtn.classList.add('copied');
-        setTimeout(function(){ copyBtn.textContent = 'Copy report'; copyBtn.classList.remove('copied'); }, 1800);
-      }
-      if(navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(reportText).then(markCopied).catch(function(){
-          copyBtn.textContent = 'Copy failed';
-          setTimeout(function(){ copyBtn.textContent = 'Copy report'; }, 1800);
-        });
-      }
-    });
+    if(copyBtn){
+      copyBtn.addEventListener('click', function(){
+        var text = buildReportText(c, flags, level);
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(text).then(function(){
+            copyBtn.textContent = 'COPIED';
+            setTimeout(function(){ copyBtn.textContent = 'COPY REPORT'; }, 1600);
+          });
+        }
+      });
+    }
 
     if(!opts.example && !opts.fromHistory){
-      saveHistory(carrier, level, opts.freshCarrier);
+      saveHistory(c, level, opts);
     }
+    renderHistory();
   }
 
-  var EXAMPLE_CARRIER = {
-    dotNumber: '1032119',
-    legalName: 'Example Freight Solutions LLC',
-    dbaName: 'Example Freight',
-    phyStreet: '4501 Cargo Way',
-    phyCity: 'Laredo',
-    phyState: 'TX',
-    phyZipcode: '78045',
-    allowedToOperate: 'Y',
-    oosDate: null,
-    mcs150Outdated: true,
-    totalDrivers: 1,
-    totalPowerUnits: 1,
-    commonAuthorityStatus: 'ACTIVE',
-    contractAuthorityStatus: '',
-    brokerAuthorityStatus: '',
-    carrierOperation: 'Interstate Motor Carrier'
-  };
-
-  function showExample(){
-    render(EXAMPLE_CARRIER, {example:true});
-  }
-
-  function setStatus(msg, cls){
-    var el = document.getElementById('statusMsg');
-    el.textContent = msg || '';
-    el.className = 'msg' + (cls ? ' ' + cls : '');
-  }
-
-  var lookupMode = 'dot';
-  var modeLabels = { dot: 'USDOT number', mc: 'MC / docket number' };
-  var modePlaceholders = { dot: 'e.g. 1234567', mc: 'e.g. 515221' };
-
-  Array.prototype.forEach.call(document.querySelectorAll('#modeToggle button'), function(btn){
-    btn.addEventListener('click', function(){
-      lookupMode = btn.getAttribute('data-mode');
-      Array.prototype.forEach.call(document.querySelectorAll('#modeToggle button'), function(b){
-        b.classList.toggle('active', b === btn);
-      });
-      document.getElementById('dotLabel').textContent = modeLabels[lookupMode];
-      document.getElementById('dotInput').placeholder = modePlaceholders[lookupMode];
+  function saveHistory(c, level, opts){
+    var h = getHistory();
+    h.unshift({
+      legalName: c.legalName || 'Unknown carrier',
+      dotNumber: c.dotNumber || '',
+      mcNumber: c.mcNumber || c.docketNumber || '',
+      level: level,
+      demo: !!opts.example,
+      date: new Date().toISOString(),
+      carrier: c,
+      opts: { carrierNew: !!opts.carrierNew, highValue: !!opts.highValue, timeSensitive: !!opts.timeSensitive }
     });
+    setHistory(h);
+  }
+
+  function renderHistory(){
+    var h = getHistory();
+    var host = document.getElementById('historyList');
+    if(!h.length){
+      host.innerHTML = '<p class="empty-note">No checks run yet this session.</p>';
+      return;
+    }
+    host.innerHTML = h.map(function(item, idx){
+      var d = new Date(item.date);
+      var dateStr = (d.getMonth()+1) + '/' + d.getDate() + '/' + String(d.getFullYear()).slice(2);
+      var statusClass = item.demo ? 'demo' : item.level;
+      var statusText = item.demo ? 'DEMO' : (item.level==='crit'?'STOP':item.level==='warn'?'VERIFY':'CLEAR');
+      return '<button class="recent-card" type="button" data-idx="' + idx + '">' +
+        '<div class="name">' + (item.legalName || 'Unknown carrier') + '</div>' +
+        '<div class="meta"><span>' + (item.dotNumber ? 'DOT ' + item.dotNumber : (item.mcNumber ? 'MC ' + item.mcNumber : '')) + '</span><span>' + dateStr + '</span></div>' +
+        '<div class="status ' + statusClass + '">' + statusText + '</div>' +
+        '</button>';
+    }).join('');
+    host.querySelectorAll('.recent-card').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var idx = parseInt(btn.getAttribute('data-idx'), 10);
+        var item = getHistory()[idx];
+        if(!item) return;
+        render(item.carrier, { fromHistory:true, example:item.demo, carrierNew:item.opts&&item.opts.carrierNew, highValue:item.opts&&item.opts.highValue, timeSensitive:item.opts&&item.opts.timeSensitive });
+        window.scrollTo({top: document.getElementById('checkSection').offsetTop - 20, behavior:'smooth'});
+      });
+    });
+  }
+
+  document.getElementById('clearHistoryBtn').addEventListener('click', function(){
+    setHistory([]);
+    renderHistory();
   });
 
-  document.getElementById('lookupBtn').addEventListener('click', function(){
-    var input = document.getElementById('dotInput').value.trim();
-    if(!input){ setStatus('Enter a number first.', 'error'); return; }
+  var lookupMode = 'dot';
+  var modeToggle = document.getElementById('modeToggle');
+  modeToggle.addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-mode]');
+    if(!btn) return;
+    lookupMode = btn.getAttribute('data-mode');
+    modeToggle.querySelectorAll('button').forEach(function(b){ b.setAttribute('aria-pressed', b===btn ? 'true':'false'); });
+    document.getElementById('dotInput').placeholder = lookupMode==='dot' ? 'Enter USDOT number' : 'Enter MC / docket number';
+  });
+
+  var chooseDemo = document.getElementById('chooseDemo');
+  var chooseLive = document.getElementById('chooseLive');
+  function setChoice(live){
+    chooseDemo.setAttribute('aria-pressed', live ? 'false':'true');
+    chooseLive.setAttribute('aria-pressed', live ? 'true':'false');
+  }
+  chooseDemo.addEventListener('click', function(){ setChoice(false); showExample(); });
+  chooseLive.addEventListener('click', function(){ setChoice(true); document.getElementById('dotInput').focus(); });
+
+  var EXAMPLE_CARRIER = {
+    legalName: 'Example Freight Solutions LLC',
+    dbaName: '',
+    dotNumber: '1032119',
+    mcNumber: 'MC-000000',
+    phyCity: 'Fort Worth', phyState: 'TX',
+    allowedToOperate: 'Y',
+    oosDate: '',
+    mcs150Outdated: 'Y',
+    totalDrivers: '1',
+    totalPowerUnits: '1',
+    commonAuthorityStatus: 'A',
+    contractAuthorityStatus: '',
+    brokerAuthorityStatus: '',
+    carrierOperation: { carrierOperationCode: 'A', carrierOperationDesc: 'Interstate for-hire' }
+  };
+  function showExample(){
+    render(EXAMPLE_CARRIER, { example:true, carrierNew:true });
+  }
+
+  function refreshKeyStatus(){
+    var status = document.getElementById('keyStatus');
+    status.textContent = getKey() ? 'Key saved in this browser.' : '';
+  }
+  document.getElementById('saveKeyBtn').addEventListener('click', function(){
+    var val = document.getElementById('webKeyInput').value.trim();
+    if(!val) return;
+    setKey(val);
+    document.getElementById('webKeyInput').value = '';
+    refreshKeyStatus();
+  });
+  document.getElementById('clearKeyBtn').addEventListener('click', function(){
+    clearKeyStore();
+    refreshKeyStatus();
+  });
+  refreshKeyStatus();
+
+  var LOADING_STEPS = ['CHECKING USDOT STATUS…','CHECKING OPERATING AUTHORITY…','CHECKING OUT-OF-SERVICE STATUS…','BUILDING REVIEW…'];
+  var runBtn = document.getElementById('runBtn');
+  var loadingLine = document.getElementById('loadingLine');
+
+  function runLoadingCopy(){
+    var i = 0;
+    loadingLine.textContent = LOADING_STEPS[0];
+    var timer = setInterval(function(){
+      i = (i+1) % LOADING_STEPS.length;
+      loadingLine.textContent = LOADING_STEPS[i];
+    }, 550);
+    return function stop(){ clearInterval(timer); loadingLine.textContent=''; };
+  }
+
+  runBtn.addEventListener('click', function(){
+    var val = document.getElementById('dotInput').value.trim();
+    if(!val){ document.getElementById('dotInput').focus(); return; }
     var key = getKey();
-    if(!key){ setStatus('Add your free FMCSA key above to run a live lookup — the example result stays visible until then.', 'error'); return; }
+    if(!key){
+      setChoice(true);
+      window.scrollTo({top: document.getElementById('setupSection').offsetTop - 20, behavior:'smooth'});
+      document.getElementById('webKeyInput').focus();
+      return;
+    }
+    var url = lookupMode === 'dot'
+      ? 'https://mobile.fmcsa.dot.gov/qc/services/carriers/' + encodeURIComponent(val) + '?webKey=' + encodeURIComponent(key)
+      : 'https://mobile.fmcsa.dot.gov/qc/services/carriers/docket-number/' + encodeURIComponent(val) + '?webKey=' + encodeURIComponent(key);
 
-    var btn = document.getElementById('lookupBtn');
-    btn.disabled = true;
-    setStatus('Looking up ' + modeLabels[lookupMode] + ' ' + input + '…', 'loading');
+    var opts = {
+      carrierNew: document.getElementById('carrierNew').checked,
+      highValue: document.getElementById('highValue').checked,
+      timeSensitive: document.getElementById('timeSensitive').checked
+    };
 
-    var url = lookupMode === 'mc'
-      ? 'https://mobile.fmcsa.dot.gov/qc/services/carriers/docket-number/' + encodeURIComponent(input) + '?webKey=' + encodeURIComponent(key)
-      : 'https://mobile.fmcsa.dot.gov/qc/services/carriers/' + encodeURIComponent(input) + '?webKey=' + encodeURIComponent(key);
+    runBtn.disabled = true;
+    var stopLoading = runLoadingCopy();
 
-    fetch(url, {headers:{'Accept':'application/json'}})
+    fetch(url, { headers: { 'Accept':'application/json' } })
       .then(function(res){
-        if(!res.ok){ throw new Error('FMCSA returned status ' + res.status + '. Double-check the number and your key.'); }
+        if(!res.ok) throw new Error('FMCSA returned status ' + res.status);
         return res.json();
       })
       .then(function(data){
-        var carrier = normalizeCarrier(data);
-        if(!carrier || !Object.keys(carrier).length){
-          throw new Error('No carrier record came back for that number.');
+        var c = normalizeCarrier(data);
+        if(!c || (!c.legalName && !c.dotNumber)){
+          throw new Error('No carrier found for that number.');
         }
-        if(!carrier.dotNumber && lookupMode === 'dot'){ carrier.dotNumber = input; }
-        var fresh = document.getElementById('freshCarrierCheck').checked;
-        render(carrier, {dot: carrier.dotNumber, freshCarrier: fresh});
-        setStatus('');
+        render(c, opts);
       })
       .catch(function(err){
-        setStatus(err.message || 'Something went wrong reaching FMCSA.', 'error');
+        document.getElementById('demoBannerHost').innerHTML = '';
+        document.getElementById('resultPanel').innerHTML =
+          '<div class="decision-block warn fade-in"><div class="label">Lookup failed</div><h3 style="font-size:28px;">Couldn’t retrieve that record</h3><p class="why">' + (err.message || 'Check the number and your saved FMCSA key, then try again.') + '</p></div>';
       })
       .finally(function(){
-        btn.disabled = false;
+        runBtn.disabled = false;
+        stopLoading();
       });
   });
 
   document.getElementById('dotInput').addEventListener('keydown', function(e){
-    if(e.key === 'Enter'){ document.getElementById('lookupBtn').click(); }
+    if(e.key === 'Enter') runBtn.click();
   });
 
-  refreshKeyStatus();
-  renderHistory();
   showExample();
+  renderHistory();
 })();
 </script>
+</body>
+</html>
